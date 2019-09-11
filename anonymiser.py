@@ -179,9 +179,9 @@ def an0n(twbx_file_path,dataset_configuration,tempfolder):
         for column in extract.fields :
             if not column["Skip"]:
                 if column["Type"] == "Integer":
-                    if column["Number Type"] = "Discrete":
+                    if column["Number Type"] == "Discrete":
                         df[column['name']] = categorical(df[column['name']])
-                    elif column["Number Type"] = "Continuous":
+                    elif column["Number Type"] == "Continuous":
                         df[column['name']] = number_continuous(df[column['name']],decimals=0)
                     else:
                         print("ERROR: Unhandled Number Type in column '%s'".format(column['name']))
@@ -194,7 +194,7 @@ def an0n(twbx_file_path,dataset_configuration,tempfolder):
                         df[column['name']] = lorem(type=column["String Type"][6:],number=column["Number"])
                     elif column["String Type"].startswith("geo."):
                         df[column['name']] = geo(type=column["String Type"][4:])
-                    elif column["String Type"] = "Array":
+                    elif column["String Type"] == "Array":
                         df[column['name']] = string_array(values=column["Array Values"],probabilities=olumn["Array Probability"])
                         print("ERROR: Unhandled String Type in column '%s'".format(column['name']))
 

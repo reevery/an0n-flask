@@ -1,11 +1,12 @@
 from tableaudocumentapi import Workbook
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
 
 def initial(filename):
-    wb = Workbook(filename)
+    wb = Workbook(os.path.join('twbx', filename))
     data = []
 
     for datasource in wb.datasources:
@@ -21,7 +22,7 @@ def initial(filename):
             })
         data.append({
             'name': datasource.name,
-            'caption': datasource.caption,
+            'caption': datasource.caption or datasource.name,
             'fields': fields
         })
     return data

@@ -28,7 +28,7 @@ def index():
         filename = secure_filename(form.filename.data.filename)
         app.logger.info(filename)
         # TODO Add path
-        form.filename.data.save(filename)
+        form.filename.data.save(os.path.join('twbx', filename))
         return redirect(url_for('select', filename=filename))
     return render_template('index.html', form=form)
 
@@ -55,7 +55,7 @@ def finish(filename):
 
 @app.route("/download/<filename>", methods=['GET', 'POST'])
 def download(filename):
-    return send_file(os.path.join(app.root_path, filename),
+    return send_file(os.path.join(app.root_path, 'twbx', filename),
                      attachment_filename=filename,
                      as_attachment=True)
 

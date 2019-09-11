@@ -1,4 +1,12 @@
-{% with messages = get_flashed_messages() %}
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="../static/an0nstyle.css">
+</head>
+
+
+<body>
+<center>
+     {% with messages = get_flashed_messages() %}
         {% if messages %}
         <ul>
             {% for message in messages %}
@@ -15,3 +23,4 @@
     {{ form.hidden_tag() }}
     {{ form.submit }}
 </form>
+</body>

@@ -1,13 +1,9 @@
 #!/usr/bin/python3
-import sys
 import os
-import logging
-from flask import Flask, render_template, redirect, url_for
-# , Response, render_template, flash, redirect, jsonify
+from flask import Flask, render_template, redirect, url_for, send_file
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired
 from wtforms import SubmitField
-# from urllib.parse import quote
 from werkzeug.utils import secure_filename
 from documentapi import initial
 
@@ -20,6 +16,10 @@ class UploadForm(FlaskForm):
     submit = SubmitField('Upload')
 
 
+class FieldSelectForm(FlaskForm):
+    submit = SubmitField('Run')
+
+
 @app.route("/", methods=['GET', 'POST'])
 def index():
     form = UploadForm()
@@ -29,16 +29,36 @@ def index():
         app.logger.info(filename)
         # TODO Add path
         form.filename.data.save(filename)
-        # filename = secure_filename(f.filename)
-        # f.save(os.path.join(
-        #     app.instance_path, 'twbx', filename
-        # ))
-        return redirect(url_for('index'))
-
+        return redirect(url_for('select', filename=filename))
     return render_template('index.html', form=form)
 
 
-if __name__ == '__main__':
-    logging.basicConfig(level=os.getenv('LOG_LEVEL', 'DEBUG'))
+@app.route("/select/<filename>", methods=['GET', 'POST'])
+def select(filename):
+    data = initial(filename)
+    app.logger.info('Select: %s', data)
 
-    app.run(host='0.0.0.0')
+    form = FieldSelectForm()
+    if form.validate_on_submit():
+        return redirect(url_for('finish', filename=filename))
+    return render_template('select.html', form=form, data=data, filename=filename)
+
+
+@app.route("/finish/<filename>", methods=['GET', 'POST'])
+def finish(filename):
+    data = dict()
+    data['filename'] = initial(filename)
+    app.logger.info('Finish: %s', data)
+
+    return render_template('download.html', data=data, filename=filename)
+
+
+@app.route("/download/<filename>", methods=['GET', 'POST'])
+def download(filename):
+    return send_file(os.path.join(app.root_path, filename),
+                     attachment_filename=filename,
+                     as_attachment=True)
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', debug=True)

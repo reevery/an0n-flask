@@ -168,10 +168,9 @@ dataset_configuration = [
 # TO DO: change to CSV or some other handshake
 def an0n(twbx_file_path,dataset_configuration,tempfolder):
     hyper_path = export_twbxobj_to_hyper(twbx_file_path,tempfolder)
-    hyperfile_to_df(hyper_path)
+    df = hyperfile_to_df(hyper_path)
     
     for extract in dataset_configuration:
-        df = pd.read_excel(input_file)
         for column_name, column in extract:
             if not column["Skip"]:
                 if column["Type"] == "Integer":

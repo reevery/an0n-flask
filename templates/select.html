@@ -2,10 +2,11 @@
     {{ form.filename }}
     {{ form.hidden_tag() }}
     {% for ds in data %}
-    {{ ds.caption }}
+    <h2>{{ ds.caption }}</h2>
     <table>
+        <tr><th>Role</th><th>Name</th><th>Type</th></tr>
     {% for f in ds.fields %}
-        <tr><td>{{ f.Caption }}</td></tr>
+        <tr><td>{{ f.Role }}</td><td>{{ f.Caption }}</td><td>{{ f.Datatype }}</td></tr>
     {% endfor %}
         </table>
     {% endfor %}

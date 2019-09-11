@@ -1,4 +1,15 @@
-<form action="/select/{{ filename }}" method="post" enctype="multipart/form-data">
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="../static/an0nstyle.css">
+</head>
+
+
+<body>
+<center>
+
+<img src="../static/topheader.png" />
+    
+    <form action="/select/{{ filename }}" method="post" enctype="multipart/form-data">
     {{ form.filename }}
     {{ form.hidden_tag() }}
     {% for ds in data %}
@@ -10,7 +21,9 @@
     {% endfor %}
         </table>
     {% endfor %}
-
+<br>
     {{ form.submit }}
 
 </form>
+
+</body>

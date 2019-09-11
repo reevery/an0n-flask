@@ -9,3 +9,9 @@
 {% endwith %}
 
 <p>HTML for uploading file</p>
+
+<form action="/" method="post" enctype="multipart/form-data">
+    {{ form.filename }}
+    {{ form.hidden_tag() }}
+    {{ form.submit }}
+</form>

@@ -13,12 +13,12 @@ def initial(filename):
         fields = []
         for field in datasource.fields.values():
             fields.append({
-                'Name': field.name,
-                'Role': field.role,
-                'Type': field.datatype,
+                'name': field.name,
+                'role': field.role,
+                'datatype': field.datatype,
                 # 'Number Type': field.type,
-                'Caption': field.caption,
-                'Calculation': field.calculation == '1',
+                'caption': field.caption,
+                'calculation': field.calculation == '1',
             })
         data.append({
             'name': datasource.name,

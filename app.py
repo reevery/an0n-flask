@@ -6,6 +6,7 @@ from flask_wtf.file import FileField, FileRequired
 from wtforms import SubmitField, SelectMultipleField, HiddenField
 from werkzeug.utils import secure_filename
 from documentapi import initial
+# from anonymiser import an0n, dataset_configuration
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'an0nymous'
@@ -52,8 +53,9 @@ def finish(filename):
     form = FieldSelectForm()
     if form.validate_on_submit():
         app.logger.info('Finish: %s', form)
-    # anon = anon(os.path.join(app.root_path, 'twbx', filename),
-    #             data)
+    # anon = an0n(os.path.join(app.root_path, 'twbx', filename),
+    #             dataset_configuration,
+    #             'tmp')
 
     return render_template('download.html', data=form.data.data, filename=filename)
 

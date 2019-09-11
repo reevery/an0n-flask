@@ -6,7 +6,7 @@
     <table>
         <tr><th>Role</th><th>Name</th><th>Type</th></tr>
     {% for f in ds.fields %}
-        <tr><td>{{ f.Role }}</td><td>{{ f.Caption }}</td><td>{{ f.Datatype }}</td></tr>
+        <tr><td><input type="checkbox" />{{ f.role }}</td><td>{{ f.caption }}</td><td>{{ f.datatype }}</td></tr>
     {% endfor %}
         </table>
     {% endfor %}

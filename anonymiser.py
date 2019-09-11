@@ -166,7 +166,7 @@ dataset_configuration = [
 
 # Read data from file
 # TO DO: change to CSV or some other handshake
-def an0n(twbx_file_path,dataset_configuration,tempfolder)
+def an0n(twbx_file_path,dataset_configuration,tempfolder):
     hyper_path = export_twbxobj_to_hyper(twbx_file_path,tempfolder)
     hyperfile_to_df(hyper_path)
     

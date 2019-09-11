@@ -1,5 +1,15 @@
 <form action="/select/{{ filename }}" method="post" enctype="multipart/form-data">
     {{ form.filename }}
     {{ form.hidden_tag() }}
+    {% for ds in data %}
+    {{ ds.caption }}
+    <table>
+    {% for f in ds.fields %}
+        <tr><td>{{ f.Caption }}</td></tr>
+    {% endfor %}
+        </table>
+    {% endfor %}
+
     {{ form.submit }}
+
 </form>

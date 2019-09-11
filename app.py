@@ -3,7 +3,7 @@ import os
 from flask import Flask, render_template, redirect, url_for, send_file
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired
-from wtforms import SubmitField
+from wtforms import SubmitField, SelectMultipleField, HiddenField
 from werkzeug.utils import secure_filename
 from documentapi import initial
 
@@ -17,6 +17,8 @@ class UploadForm(FlaskForm):
 
 
 class FieldSelectForm(FlaskForm):
+    # fields = SelectMultipleField()
+    data = HiddenField()
     submit = SubmitField('Run')
 
 
@@ -39,6 +41,7 @@ def select(filename):
     app.logger.info('Select: %s', data)
 
     form = FieldSelectForm()
+    form.data = data
     if form.validate_on_submit():
         return redirect(url_for('finish', filename=filename))
     return render_template('select.html', form=form, data=data, filename=filename)
@@ -46,11 +49,13 @@ def select(filename):
 
 @app.route("/finish/<filename>", methods=['GET', 'POST'])
 def finish(filename):
-    data = dict()
-    data['filename'] = initial(filename)
-    app.logger.info('Finish: %s', data)
+    form = FieldSelectForm()
+    if form.validate_on_submit():
+        app.logger.info('Finish: %s', form)
+    # anon = anon(os.path.join(app.root_path, 'twbx', filename),
+    #             data)
 
-    return render_template('download.html', data=data, filename=filename)
+    return render_template('download.html', data=form.data.data, filename=filename)
 
 
 @app.route("/download/<filename>", methods=['GET', 'POST'])

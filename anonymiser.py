@@ -1,6 +1,7 @@
 import pandas as pd
 import os, zipfile
 from tableauhyperapi import HyperProcess, Telemetry, Connection, CreateMode, escape_name
+from datetime import datetime
 
 def export_twbxobj_to_hyper(fileobj,tempfolder):
     tmp_file_path = tempfolder + '/tmp.hyper'
@@ -28,133 +29,137 @@ def hyperfile_to_df(hyper_path):
 ###################
 
 dataset_configuration = [
-    "Orders":{
-        "Row ID":{
+    {
+        'caption': "Orders",
+        'fields': [
+            {
+                'name': "Row ID",
+                "Type":"Integer",
+                "Number Type":"Discrete",
+                "Skip":False
+            }, {
+                'name':"Order ID",
             "Type":"Integer",
             "Number Type":"Discrete",
             "Skip":False
-        },
-        "Order ID":{
-            "Type":"Integer",
-            "Number Type":"Discrete",
-            "Skip":False
-        },
-        "Order Date":{
+        },{
+                'name':"Order Date",
             "Type":"Date",
             "Skip":False
-        },
-        "Order Priority":{
+        },{
+                'name':"Order Priority",
             "Type":"String",
             "String Type":"Array",  # Required for String
             "Array Values":["N/A","L","M","H"], # Required for Array (user input)
             "Skip":False
-        },
-        "Order Quantity":{
+        },{
+                'name':"Order Quantity",
             "Type":"Integer",
             "Number Type":"Continuous",
             "Skip":False
-        },
-        "Sales":{
+        },{
+                'name':"Sales",
             "Type":"Float",
             "Decimal Places":2,
             "Skip":False
-        },
-        "Discount":{
+        },{
+                'name':"Discount",
             "Type":"Float",
             "Decimal Places":2,
             "Skip":False
-        },
-        "Ship Mode":{
+        },{
+                'name':"Ship Mode",
             "Type":"String",
             "String Type":"Array",  # Required for String
             "Array Values":["Air","Land","Sea"], # Required for Array (user input)
             "Array Probability":[0.5,0.3,0.2],
             "Skip":False
-        },
-        "Profit":{
+        },{
+                'name':"Profit",
             "Type":"Float",
             "Decimal Places":2,
             "Skip":False
-        },
-        "Unit Price":{
+        },{
+                'name':"Unit Price",
             "Type":"Float",
             "Decimal Places":2,
             "Skip":False
-        },
-        "Shipping Cost":{
+        },{
+                'name':"Shipping Cost",
             "Type":"Float",
             "Decimal Places":2,
             "Skip":False
-        },
-        "Customer Name":{
+        },{
+                'name':"Customer Name",
             "Type":"String",
             "String Type":"profile.name",
             "Skip":False
-        },
-        "City":{
+        },{
+                'name':"City",
             "Type":"String",
             "String Type":"geo.city",
             "Skip":False
-        },
-        "Zip Code":{
+        },{
+                'name':"Zip Code",
             "Type":"String",
             "String Type":"geo.zip",
             "Skip":False
-        },
-        "State":{
+        },{
+                'name':"State",
             "Type":"String",
             "String Type":"geo.state",
             "Skip":False
-        },
-        "Region":{
+        },{
+                'name':"Region",
             "Type":"String",
             "String Type":"Array",
             "Array Values":["North","East","South","West"], # Required for Array (user input)
             "Array Probability":[0.2,0.3,0.2,0.3],
             "Skip":False
-        },
-        "Customer Segment":{
+        },{
+                'name':"Customer Segment",
             "Type":"String",
             "String Type":"Array",
             "Array Values":["Samll Business","Corporate","Home Office","Consumer"], # Required for Array (user input)
             "Array Probability":[0.7,0.2,0.15,0.05],
             "Skip":False
-        },
-        "Product Category":{
+        },{
+                'name':"Product Category",
             "Type":"String",
             "String Type":"Array",
             "Array Values":["Office Supplies","Furniture","Technology"], # Required for Array (user input)
             "Array Probability":[0.3,0.3,0.4],
             "Skip":False
-        },
-        "Product Sub-Category":{
+        },{
+                'name':"Product Sub-Category",
             "Type":"String",
             "String Type":"lorem.word",
             "Number":2,
             "Skip":False
-        },
-        "Product Name":{
+        },{
+                'name': "Product Name",
             "Type":"String",
             "String Type":"lorem.word",
             "Number":3,
             "Skip":False
-        },
-        "Product Container":{
+        },{
+                'name':"Product Container",
             "Type":"String",
             "String Type":"Array",
             "Array Values":["Box","Pack","Wrap"], # Required for Array (user input)
             "Array Probability":[0.3,0.3,0.4],
             "Skip":False
-        },
-        "Product Base Margin":{
+        },{
+                'name':"Product Base Margin",
             "Type":"Float",
             "Decimal Places":2,
             "Skip":False
-        },
-        "Ship Date":{
+        },{
+                'name':"Ship Date",
             "Type":"Date",
             "Skip":False
         }
+        ]
     }
 ]
 
@@ -171,27 +176,27 @@ def an0n(twbx_file_path,dataset_configuration,tempfolder):
     df = hyperfile_to_df(hyper_path)
     
     for extract in dataset_configuration:
-        for column_name, column in extract:
+        for column in extract.fields :
             if not column["Skip"]:
                 if column["Type"] == "Integer":
                     if column["Number Type"] = "Discrete":
-                        df[column_name] = categorical(df[column_name])
+                        df[column['name']] = categorical(df[column['name']])
                     elif column["Number Type"] = "Continuous":
-                        df[column_name] = number_continuous(df[column_name],decimals=0)
+                        df[column['name']] = number_continuous(df[column['name']],decimals=0)
                     else:
-                        print("ERROR: Unhandled Number Type in column '%s'".format(column_name))
+                        print("ERROR: Unhandled Number Type in column '%s'".format(column['name']))
                 elif column["Type"] == "Float":
-                    df[column_name] = number_continuous(df[column_name],decimals=column["Decimal Places"])
+                    df[column['name']] = number_continuous(df[column['name']],decimals=column["Decimal Places"])
                 elif column["Type"] == "Date" or column["Type"] == "Time" or column["Type"] == "Datetime":
-                    df[column_name] = datetime(df[column_name],datetime_part=column["Type"])
+                    df[column['name']] = datetime(df[column['name']],datetime_part=column["Type"])
                 elif column["Type"] == "String":
                     if column["String Type"].startswith("lorem."):
-                        df[column_name] = lorem(type=column["String Type"][6:],number=column["Number"])
+                        df[column['name']] = lorem(type=column["String Type"][6:],number=column["Number"])
                     elif column["String Type"].startswith("geo."):
-                        df[column_name] = geo(type=column["String Type"][4:])
+                        df[column['name']] = geo(type=column["String Type"][4:])
                     elif column["String Type"] = "Array":
-                        df[column_name] = string_array(values=column["Array Values"],probabilities=olumn["Array Probability"])
-                        print("ERROR: Unhandled String Type in column '%s'".format(column_name))
+                        df[column['name']] = string_array(values=column["Array Values"],probabilities=olumn["Array Probability"])
+                        print("ERROR: Unhandled String Type in column '%s'".format(column['name']))
 
 ###################
 #

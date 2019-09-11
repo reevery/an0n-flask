@@ -1,14 +1,31 @@
 import pandas as pd
-import Faker
-from address import AddressParser, Address
+import os, zipfile
+from tableauhyperapi import HyperProcess, Telemetry, Connection, CreateMode, escape_name
+
+def export_twbxobj_to_hyper(fileobj,tempfolder):
+    tmp_file_path = tempfolder + '/tmp.hyper'
+    with open(tmp_file_path,'bw+') as tmp_file:
+        with zipfile.ZipFile(fileobj,'r') as zfile:
+            hyper_fileobj = zfile.read([z for z in zfile.namelist() if z.endswith('.hyper')][0])
+            tmp_file.write(hyper_fileobj)
+    return tmp_file_path
+
+def hyperfile_to_df(hyper_path):
+    with HyperProcess(telemetry=Telemetry.DO_NOT_SEND_USAGE_DATA_TO_TABLEAU) as hyper:
+        with Connection(endpoint=hyper.endpoint,database=hyper_path) as connection:
+            tablename = connection.catalog.get_table_names(schema="public")[0]
+            table_definition = connection.catalog.get_table_definition(name=tablename)
+            rows_in_table = connection.execute_result_list(query=f"SELECT * FROM {escape_name(tablename)}")
+            df = pd.DataFrame(columns=[c.name for c in table_definition.columns],data=rows_in_table)
+    return df
+
+
 
 ###################
 #
 #  Configuration
 #
 ###################
-
-input_file = '/Users/mkernke/Tableau Server Hacks/London Hackathon 2019/Sample - Superstore Sales (Excel).xlsx'
 
 dataset_configuration = [
     "Orders":{
@@ -149,31 +166,33 @@ dataset_configuration = [
 
 # Read data from file
 # TO DO: change to CSV or some other handshake
-df = pd.read_excel(input_file)
-
-for extract in dataset_configuration:
-    df = pd.read_excel(input_file)
-    for column_name, column in extract:
-        if not column["Skip"]:
-            if column["Type"] == "Integer":
-                if column["Number Type"] = "Discrete":
-                    df[column_name] = categorical(df[column_name])
-                elif column["Number Type"] = "Continuous":
-                    df[column_name] = number_continuous(df[column_name],decimals=0)
-                else:
-                    print("ERROR: Unhandled Number Type in column '%s'".format(column_name))
-            elif column["Type"] == "Float":
-                df[column_name] = number_continuous(df[column_name],decimals=column["Decimal Places"])
-            elif column["Type"] == "Date" or column["Type"] == "Time" or column["Type"] == "Datetime":
-                df[column_name] = datetime(df[column_name],datetime_part=column["Type"])
-            elif column["Type"] == "String":
-                if column["String Type"].startswith("lorem."):
-                    df[column_name] = lorem(type=column["String Type"][6:],number=column["Number"])
-                elif column["String Type"].startswith("geo."):
-                    df[column_name] = geo(type=column["String Type"][4:])
-                elif column["String Type"] = "Array":
-                    df[column_name] = string_array(values=column["Array Values"],probabilities=olumn["Array Probability"])
-                    print("ERROR: Unhandled String Type in column '%s'".format(column_name))
+def an0n(twbx_file_path,dataset_configuration,tempfolder)
+    hyper_path = export_twbxobj_to_hyper(twbx_file_path,tempfolder)
+    hyperfile_to_df(hyper_path)
+    
+    for extract in dataset_configuration:
+        df = pd.read_excel(input_file)
+        for column_name, column in extract:
+            if not column["Skip"]:
+                if column["Type"] == "Integer":
+                    if column["Number Type"] = "Discrete":
+                        df[column_name] = categorical(df[column_name])
+                    elif column["Number Type"] = "Continuous":
+                        df[column_name] = number_continuous(df[column_name],decimals=0)
+                    else:
+                        print("ERROR: Unhandled Number Type in column '%s'".format(column_name))
+                elif column["Type"] == "Float":
+                    df[column_name] = number_continuous(df[column_name],decimals=column["Decimal Places"])
+                elif column["Type"] == "Date" or column["Type"] == "Time" or column["Type"] == "Datetime":
+                    df[column_name] = datetime(df[column_name],datetime_part=column["Type"])
+                elif column["Type"] == "String":
+                    if column["String Type"].startswith("lorem."):
+                        df[column_name] = lorem(type=column["String Type"][6:],number=column["Number"])
+                    elif column["String Type"].startswith("geo."):
+                        df[column_name] = geo(type=column["String Type"][4:])
+                    elif column["String Type"] = "Array":
+                        df[column_name] = string_array(values=column["Array Values"],probabilities=olumn["Array Probability"])
+                        print("ERROR: Unhandled String Type in column '%s'".format(column_name))
 
 ###################
 #

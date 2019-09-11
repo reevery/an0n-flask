@@ -1,7 +1,7 @@
+#import Faker
 import pandas as pd
-import os, zipfile
-from tableauhyperapi import HyperProcess, Telemetry, Connection, CreateMode, escape_name
-from datetime import datetime
+import os, zipfile, tempfile
+from tableauhyperapi import HyperProcess, Telemetry, Connection, CreateMode, escape_name, inserter
 
 def export_twbxobj_to_hyper(fileobj,tempfolder):
     tmp_file_path = tempfolder + '/tmp.hyper'
@@ -12,15 +12,54 @@ def export_twbxobj_to_hyper(fileobj,tempfolder):
     return tmp_file_path
 
 def hyperfile_to_df(hyper_path):
+    print(hyper_path)
     with HyperProcess(telemetry=Telemetry.DO_NOT_SEND_USAGE_DATA_TO_TABLEAU) as hyper:
         with Connection(endpoint=hyper.endpoint,database=hyper_path) as connection:
+            print(connection.catalog.get_table_names(schema="public"))
             tablename = connection.catalog.get_table_names(schema="public")[0]
             table_definition = connection.catalog.get_table_definition(name=tablename)
             rows_in_table = connection.execute_result_list(query=f"SELECT * FROM {escape_name(tablename)}")
             df = pd.DataFrame(columns=[c.name for c in table_definition.columns],data=rows_in_table)
     return df
 
+def write_df_to_hyper(df,hyper_path):
+    with HyperProcess(telemetry=Telemetry.DO_NOT_SEND_USAGE_DATA_TO_TABLEAU) as hyper:
+        with Connection(endpoint=hyper.endpoint,database=hyper_path) as connection:
+            tablename = connection.catalog.get_table_names(schema="public")[0]
 
+            # Delete the old data
+            connection.execute_command(command=f"DELETE FROM {escape_name(tablename)}")
+
+            with Inserter(connection, tablename) as inserter:
+                inserter.add_rows(rows=df.values.tolist())
+                inserter.execute()
+    return hyper_file_path
+
+def update_hyper_in_twbx(hyper_file_path,twbx_file_path):
+    with zipfile.ZipFile(twbx_file_path,'r') as zfile:
+        filename = [z for z in zfile.namelist() if z.endswith('.hyper')][0]
+#def updateZip(zipname, filename, data):
+    # generate a temp file
+    tmpfd, tmpname = tempfile.mkstemp(dir=os.path.dirname(twbx_file_path))
+    os.close(tmpfd)
+
+    # create a temp copy of the archive without filename
+    with zipfile.ZipFile(twbx_file_path, 'r') as zin:
+        with zipfile.ZipFile(tmpname, 'w') as zout:
+            zout.comment = zin.comment # preserve the comment
+            for item in zin.infolist():
+                if item.filename != filename:
+                    zout.writestr(item, zin.read(item.filename))
+
+    # replace with the temp archive
+    os.remove(twbx_file_path)
+    os.rename(tmpname, twbx_file_path)
+
+    # now add filename with its new data
+    with zipfile.ZipFile(zipname, mode='a', compression=zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr(filename=hyper_file_path, arcname=filename)
+
+    return twbx_file_path
 
 ###################
 #
@@ -163,18 +202,29 @@ dataset_configuration = [
     }
 ]
 
-###################
-#
-#  Initialize
-#
-###################
 
-# Read data from file
-# TO DO: change to CSV or some other handshake
+def categorical(df):
+    return df
+
+def number_continuous(df,decimals=0):
+    return df
+
+def rand_datetime(df,datetime_part):
+    return df
+
+def lorem(type,number):
+    return df
+
+def geo(type):
+    return df
+
+def string_array(values,probabilities):
+    return df
+
 def an0n(twbx_file_path,dataset_configuration,tempfolder):
     hyper_path = export_twbxobj_to_hyper(twbx_file_path,tempfolder)
     df = hyperfile_to_df(hyper_path)
-    
+
     for extract in dataset_configuration:
         for column in extract.fields :
             if not column["Skip"]:
@@ -195,23 +245,14 @@ def an0n(twbx_file_path,dataset_configuration,tempfolder):
                     elif column["String Type"].startswith("geo."):
                         df[column['name']] = geo(type=column["String Type"][4:])
                     elif column["String Type"] == "Array":
-                        df[column['name']] = string_array(values=column["Array Values"],probabilities=olumn["Array Probability"])
+                        df[column['name']] = string_array(values=column["Array Values"],probabilities=column["Array Probability"])
                         print("ERROR: Unhandled String Type in column '%s'".format(column['name']))
+    write_df_to_hyper(df,hyper_path)
+    update_hyper_in_twbx(hyper_file_path,twbx_file_path)
 
-###################
-#
-#  Profiling
-#
-###################
 
-###################
-#
-#  Data generation
-#
-###################
 
-###################
-#
-#  Export to Extract SDK
-#
-###################
+# TEST TEST TEST
+twbx_file_path = '/Users/mkernke/sample.twbx'
+tempfolder = '/Users/mkernke'
+an0n(twbx_file_path,dataset_configuration,tempfolder)

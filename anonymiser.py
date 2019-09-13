@@ -1,7 +1,7 @@
 #import Faker
 import pandas as pd
 import os, zipfile, tempfile
-from tableauhyperapi import HyperProcess, Telemetry, Connection, CreateMode, escape_name, inserter
+from tableauhyperapi import HyperProcess, Telemetry, Connection, CreateMode, escape_name, inserter, QualifiedName
 
 def export_twbxobj_to_hyper(fileobj,tempfolder):
     tmp_file_path = tempfolder + '/tmp.hyper'
@@ -15,17 +15,17 @@ def hyperfile_to_df(hyper_path):
     print(hyper_path)
     with HyperProcess(telemetry=Telemetry.DO_NOT_SEND_USAGE_DATA_TO_TABLEAU) as hyper:
         with Connection(endpoint=hyper.endpoint,database=hyper_path) as connection:
-            print(connection.catalog.get_table_names(schema="public"))
-            tablename = connection.catalog.get_table_names(schema="public")[0]
-            table_definition = connection.catalog.get_table_definition(name=tablename)
-            rows_in_table = connection.execute_result_list(query=f"SELECT * FROM {escape_name(tablename)}")
+            print(connection.catalog.get_table_names(schema="Extract"))
+            tablename = connection.catalog.get_table_names(schema="Extract")[0]
+            table_definition = connection.catalog.get_table_definition(name=QualifiedName("Extract",tablename))
+            rows_in_table = connection.execute_result_list(query=f"SELECT * FROM {QualifiedName('Extract',tablename)}")#f"SELECT * FROM {escape_name(tablename)}")
             df = pd.DataFrame(columns=[c.name for c in table_definition.columns],data=rows_in_table)
     return df
 
 def write_df_to_hyper(df,hyper_path):
     with HyperProcess(telemetry=Telemetry.DO_NOT_SEND_USAGE_DATA_TO_TABLEAU) as hyper:
         with Connection(endpoint=hyper.endpoint,database=hyper_path) as connection:
-            tablename = connection.catalog.get_table_names(schema="public")[0]
+            tablename = connection.catalog.get_table_names(schema="Extract")[0]
 
             # Delete the old data
             connection.execute_command(command=f"DELETE FROM {escape_name(tablename)}")
@@ -224,7 +224,7 @@ def string_array(values,probabilities):
 def an0n(twbx_file_path,dataset_configuration,tempfolder):
     hyper_path = export_twbxobj_to_hyper(twbx_file_path,tempfolder)
     df = hyperfile_to_df(hyper_path)
-
+    print(df)
     for extract in dataset_configuration:
         for column in extract.fields :
             if not column["Skip"]:
@@ -253,6 +253,6 @@ def an0n(twbx_file_path,dataset_configuration,tempfolder):
 
 
 # TEST TEST TEST
-twbx_file_path = '/Users/mkernke/sample.twbx'
-tempfolder = '/Users/mkernke'
+twbx_file_path = '/Users/mkernke/Superstore.twbx' #'/Users/mkernke/sample.twbx'
+tempfolder = '/Users/mkernke/'
 an0n(twbx_file_path,dataset_configuration,tempfolder)
